@@ -7,9 +7,10 @@ all: $(TARGET)
 # -save-temps keep intermediate files
 $(TARGET):
 	gcc main.c -lm -save-temps -o $(TARGET)
+	gcc main.c -lm -static -o $(TARGET)_static
 
 info: $(TARGET)
 	file $(TARGET)
 
 clean:
-	rm -f $(TARGET) *.o *.a *.so *.i *.s
+	rm -f $(TARGET) $(TARGET)_static *.o *.a *.so *.i *.s
