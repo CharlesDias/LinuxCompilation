@@ -117,13 +117,13 @@ There are three types of object files:
 
 ## 4. GCC (GNU Compiler Collection) commands and options
 
-## Source and Output Files
+### Source and Output Files
 | Option        | Description                                                          |
 |---------------|----------------------------------------------------------------------|
 | `-c`          | Compile source files, but don't link. Outputs object files.          |
 | `-o filename` | Output to the given filename. Default is `a.out`.                    |
 
-## Preprocessing Options
+### Preprocessing Options
 | Option          | Description                                                          |
 |-----------------|----------------------------------------------------------------------|
 | `-E`            | Only run the preprocessor.                                           |
@@ -131,7 +131,7 @@ There are three types of object files:
 | `-U name`       | Undefine a preprocessor macro.                                       |
 | `-I directory`  | Add directory to search path for header files.                       |
 
-## Linking Options
+### Linking Options
 | Option        | Description                                                          |
 |---------------|----------------------------------------------------------------------|
 | `-l library`  | Link with the library, e.g., `-lm` or `-lpthread`.                   |
@@ -139,44 +139,89 @@ There are three types of object files:
 | `-shared`     | Create a shared object.                                              |
 | `-static`     | Perform static linking.                                              |
 
-## Optimization Options
+### Optimization Options
 | Option    | Description                                                          |
 |-----------|----------------------------------------------------------------------|
-| `-Olevel` | Optimize code. Level can be `0`, `1`, `2`, `3`, or `s`.               |
+| `-Olevel` | Optimize code. Level can be `0`, `1`, `2`, `3`, or `s`.              |
 
-## Debugging Options
+### Debugging Options
 | Option    | Description                                                          |
 |-----------|----------------------------------------------------------------------|
 | `-g`      | Produce debugging info in native format.                             |
 | `-ggdb`   | Produce debugging info for GDB.                                      |
 | `-pg`     | Generate profiling info for `gprof`.                                 |
 
-## Warning Options
+### Warning Options
 | Option    | Description                                                          |
 |-----------|----------------------------------------------------------------------|
 | `-Wall`   | Turn on most compiler warnings.                                      |
 | `-Wextra` | Turn on additional warnings not in `-Wall`.                          |
 | `-Werror` | Treat warnings as errors.                                            |
 
-## Language Standards and Extensions
+### Language Standards and Extensions
 | Option        | Description                                                          |
 |---------------|----------------------------------------------------------------------|
 | `-ansi`       | Enforce ANSI standard.                                               |
 | `-std=standard` | Specify the language standard (e.g., `-std=c99`, `-std=c++11`).    |
 | `-pedantic`   | Issue warnings for strict standard compliance.                       |
 
-## Machine-Dependent Options
+### Machine-Dependent Options
 | Option        | Description                                                          |
 |---------------|----------------------------------------------------------------------|
 | `-march=arch` | Optimize for specific architecture.                                  |
 | `-mtune=arch` | Tune code for specific architecture but avoid exclusive instructions.|
 | `-m32`/`-m64` | Generate code for a 32-bit or 64-bit environment.                    |
 
-## Miscellaneous Options
+### Miscellaneous Options
 | Option        | Description                                                          |
 |---------------|----------------------------------------------------------------------|
 | `-v`          | Display verbose output.                                              |
 | `-p`          | Generate profile info for `prof`.                                    |
-| `-fpic`/`-fPIC` | Generate position-independent code for shared libraries.          |
+| `-fpic`/`-fPIC` | Generate position-independent code for shared libraries.           |
 | `-save-temps` | Keep intermediate files: preprocessed source code and assembly files.|
 
+## 5. Using readelf
+
+Access the ex02_link_library sample code.
+
+1. Run make to build the code.
+```bash
+$ make
+gcc main.c -lm -o program
+```
+2. Run the `file program` command and see the information about the program file. We can see that the file is **ELF** format.
+```bash
+$ file program 
+program: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=1bfdcb654fe08011988561dae71c36a6694f328f, for GNU/Linux 3.2.0, not stripped
+```
+
+3. After, running the `readelf -s program` to see only the symbol inside the binary or `readelf -a program` to see all information. 
+
+4. Run the `readelf -a program | grep Shared` command to see just the shared libraries used by the binary.
+```bash
+$ readelf -a program | grep Shared
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+```
+
+5. Run the `readelf -a program | grep interpreter` to see the runtime linker.
+
+```bash
+$ readelf -a program | grep interpreter
+      [Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]
+```
+
+6. Run readelf --help to see other options.
+```bash
+$ readelf --help
+Usage: readelf <option(s)> elf-file(s)
+ Display information about the contents of ELF format files
+ Options are:
+  -a --all               Equivalent to: -h -l -S -s -r -d -V -A -I
+  -h --file-header       Display the ELF file header
+  -l --program-headers   Display the program headers
+     --segments          An alias for --program-headers
+  -S --section-headers   Display the sections' header
+
+. . . 
+```
