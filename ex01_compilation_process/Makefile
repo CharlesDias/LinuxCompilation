@@ -28,7 +28,15 @@ assemble: compile
 $(OUTPUT): assemble
 	$(LINKER) $(OUTPUT) main.o
 
+# Disassembling the ELF binary
+disassemble: $(OUTPUT)
+	objdump -d $(OUTPUT) > $(OUTPUT).asm
+
+# Dumping detailed information about the ELF binary
+dumpinfo: $(OUTPUT)
+	objdump -x $(OUTPUT) > $(OUTPUT).info
+
 clean:
-	rm -f $(OUTPUT) main main.o main.i main.s
+	rm -f $(OUTPUT) $(OUTPUT).* main.o main.i main.s
 
 .PHONY: all preprocess compile assemble clean
