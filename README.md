@@ -4,6 +4,7 @@
 - [1. Compilation process.](#1-compilation-process)
 - [2. Types of linking.](#2-types-of-linking)
 - [3. Object files.](#3-object-files)
+- [4. GCC commands and options.](#4-gcc-gnu-compiler-collection-commands-and-options)
 
 ## 1. Compilation process.
 
@@ -98,7 +99,7 @@ If saving disk space, memory, and benefiting from library updates without recomp
 In practice, many systems rely heavily on dynamic linking due to the advantages of shared library updates and memory savings. Still, there are cases, especially in embedded systems or isolated environments, where static linking might be preferred.
 
 
-## 3 Object files
+## 3. Object files
 
 An object file is the output generated when source code files are compiled. It contains machine code, but it's not yet a complete, runnable program or library. These files usually have a .o or .obj extension.
 
@@ -113,3 +114,69 @@ There are three types of object files:
 - Relocatable Object Files: These are the intermediate files that are produced when source code files are compiled but not yet linked. They contain code and data sections that can be combined with other relocatable object files to produce a runnable program or shared object.
 - Executable Object Files: These are runnable programs. They result from linking one or more relocatable object files. All addresses are fixed, and all symbols have been resolved.
 - Shared Object Files: These are similar to executable files but are intended to be loaded by other programs at runtime. They are used to provide library functions and other capabilities to programs without having to include that code in every single program.
+
+## 4. GCC (GNU Compiler Collection) commands and options
+
+## Source and Output Files
+| Option        | Description                                                          |
+|---------------|----------------------------------------------------------------------|
+| `-c`          | Compile source files, but don't link. Outputs object files.          |
+| `-o filename` | Output to the given filename. Default is `a.out`.                    |
+
+## Preprocessing Options
+| Option          | Description                                                          |
+|-----------------|----------------------------------------------------------------------|
+| `-E`            | Only run the preprocessor.                                           |
+| `-D name[=value]` | Define a preprocessor macro.                                       |
+| `-U name`       | Undefine a preprocessor macro.                                       |
+| `-I directory`  | Add directory to search path for header files.                       |
+
+## Linking Options
+| Option        | Description                                                          |
+|---------------|----------------------------------------------------------------------|
+| `-l library`  | Link with the library, e.g., `-lm` or `-lpthread`.                   |
+| `-L directory`| Add directory to the library search path.                            |
+| `-shared`     | Create a shared object.                                              |
+| `-static`     | Perform static linking.                                              |
+
+## Optimization Options
+| Option    | Description                                                          |
+|-----------|----------------------------------------------------------------------|
+| `-Olevel` | Optimize code. Level can be `0`, `1`, `2`, `3`, or `s`.               |
+
+## Debugging Options
+| Option    | Description                                                          |
+|-----------|----------------------------------------------------------------------|
+| `-g`      | Produce debugging info in native format.                             |
+| `-ggdb`   | Produce debugging info for GDB.                                      |
+| `-pg`     | Generate profiling info for `gprof`.                                 |
+
+## Warning Options
+| Option    | Description                                                          |
+|-----------|----------------------------------------------------------------------|
+| `-Wall`   | Turn on most compiler warnings.                                      |
+| `-Wextra` | Turn on additional warnings not in `-Wall`.                          |
+| `-Werror` | Treat warnings as errors.                                            |
+
+## Language Standards and Extensions
+| Option        | Description                                                          |
+|---------------|----------------------------------------------------------------------|
+| `-ansi`       | Enforce ANSI standard.                                               |
+| `-std=standard` | Specify the language standard (e.g., `-std=c99`, `-std=c++11`).    |
+| `-pedantic`   | Issue warnings for strict standard compliance.                       |
+
+## Machine-Dependent Options
+| Option        | Description                                                          |
+|---------------|----------------------------------------------------------------------|
+| `-march=arch` | Optimize for specific architecture.                                  |
+| `-mtune=arch` | Tune code for specific architecture but avoid exclusive instructions.|
+| `-m32`/`-m64` | Generate code for a 32-bit or 64-bit environment.                    |
+
+## Miscellaneous Options
+| Option        | Description                                                          |
+|---------------|----------------------------------------------------------------------|
+| `-v`          | Display verbose output.                                              |
+| `-p`          | Generate profile info for `prof`.                                    |
+| `-fpic`/`-fPIC` | Generate position-independent code for shared libraries.          |
+| `-save-temps` | Keep intermediate files: preprocessed source code and assembly files.|
+
