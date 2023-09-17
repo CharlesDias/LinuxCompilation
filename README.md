@@ -120,7 +120,7 @@ $ mv libmathops.a ../lib
 ```
 #### 2.1.3 Using the static library in another project
 
-1. Compile the source code. AS the include is not in the standard or same directory, we need to specify their path with the `-I` option during compilation.
+1. Compile the source code. As the include is not in the standard or same directory, we need to specify their path with the `-I` option during compilation.
 
 ```bash
 $ gcc -c main.c -Iinclude -o main.o
@@ -155,13 +155,6 @@ In dynamic linking, the library's code isn't part of the executable. Instead, th
 - The executable requires the library to be present on the system at runtime. If the library is missing or an incompatible version is installed, the program won't run.
 - Slight overhead during program startup due to the dynamic linking process.
 
-**Usage**
-Use the shared version of the library (typically has a .so extension, e.g., libfoo.so).
-
-```bash
-gcc program.c -L/path/to/library -lfoo -o program
-```
-
 **Note:** For dynamic libraries, there's also the concept of the runtime linker (or dynamic linker), which is responsible for loading and linking shared libraries at runtime.
 
 **Which One to Choose?**
@@ -172,6 +165,167 @@ If saving disk space, memory, and benefiting from library updates without recomp
 
 In practice, many systems rely heavily on dynamic linking due to the advantages of shared library updates and memory savings. Still, there are cases, especially in embedded systems or isolated environments, where static linking might be preferred.
 
+
+#### 2.2.1 Position-independent code (PIC) 
+
+Position-independent code (PIC) is code that can execute regardless of where it's loaded into memory. In the context of shared libraries, PIC is crucial for the following reasons:
+
+- **Memory Efficiency:** Allows multiple programs to share a single copy of a library, even if they load the library at different memory addresses.
+
+- **Load-time Efficiency:** Avoids the need to adjust addresses in the library code at load time, saving time and enhancing security.
+
+- **Functionality:** Ensures a shared library works correctly no matter its memory location
+
+PIC achieves this by avoiding absolute memory addresses, instead using mechanisms like the Global Offset Table (GOT) and relative addressing.
+
+- **Global Offset Table (GOT):** This is a table used by PIC to access data stored outside of the library (like global variables). Instead of embedding absolute addresses into the code, the code refers to entries in the GOT, which in turn contains the actual memory addresses.
+
+- **Procedure Linkage Table (PLT):** For function calls to functions that may be overridden by other libraries, the PLT is used in combination with the GOT to determine the function's actual address at runtime.
+
+- **Relative Addressing:** Within a single library or executable, relative addressing can be used to refer to functions and data. This means instead of saying "call the function at address X," the code might say "call the function located Y bytes from here."
+
+The shared library should be compiled as position-independent code (`-fpic` or `-fPIC`).
+
+- `-fpic`:
+    - Generates PIC for shared libraries but might impose a system-specific limit on the number of entries in the GOT.
+    - Suitable for small libraries with a limited number of addresses to be relocated.
+    - Can result in more efficient and faster code because of direct addressing (within GOT limits).
+    - On systems with small GOT limits, it might not be suitable for larger libraries, causing linking errors.
+
+- `-fPIC`:
+    - Does not impose the same system-specific limits as -fpic.
+    - Suitable for larger libraries.
+    - Might be slightly less efficient due to indirect addressing, especially on systems with a large address space.
+
+#### 2.2.2 Shared libraries naming conventions
+
+An hared library can have three names: real name or filename; shared object name (soname); and the linker name.
+
+- Real name or filename
+    - Combines the base library name, library extension, and version, libbasename.so.x.y.z
+    - example, libjpeg.so.8.2.2
+
+- Shared object name (soname) 
+    - Label for a major version of shared object.
+    - example, soname: libjpeg.so.8 => libjpeg.so.8.2.2
+
+- Liner name
+    - libjpeg.so    -ljpeg
+
+#### 2.2.3 Compile a dynamic library
+
+1. Considering the code inside the `ex03_library` folder. Access the subfolder `src`.
+
+2. Compile the Source Code with Position-Independent Code (PIC). Dynamic libraries should be position-independent so that they can be loaded into any memory address at runtime.
+
+```bash
+$ gcc -fpic -c math_ops_factorial.c math_ops_square.c
+```
+
+That command will create the `math_ops_factorial.o` and  `math_ops_square.o` object files.
+
+3. Run the file command
+
+```bash
+$ file *.o
+math_ops_factorial.o: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
+math_ops_square.o:    ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
+```
+
+#### 2.1.2 Create a shared library
+
+1. Now, we can use the object files to create the shared library.
+
+```bash
+$ gcc -fpic -o libmathops.so.1.2.3 math_ops_factorial.o math_ops_square.o -shared -Wl,-soname,libmathops.so.1
+```
+
+After these commands, you will have a shared library named `libmathops.so.1.2.3`.
+
+2. Run the file command over the library and check that is a dynamically linked.
+
+```bash
+$ file libmathops.so.1.2.3 
+libmathops.so.1.2.3: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, BuildID[sha1]=bedd60d7b0a6f3b6a693c44247481614e4bcb3d2, not stripped
+```
+
+3. Run the `readelf` file command to see the soname.
+
+```bash
+$ readelf -a libmathops.so.1.2.3 | grep soname
+ 0x000000000000000e (SONAME)             Library soname: [libmathops.so.1]
+```
+
+4. After creation, move the library to the lib folder
+
+```bash
+$ mv libmathops.so.1.2.3 ../lib
+```
+
+#### 2.1.3 Creating a symbolic link name
+
+After creating the shared library, especially if you're maintaining multiple versions of the library, you typically manage symbolic links to ensure consistent naming and easy updates.
+
+1. A link for the major version.
+
+```bash
+$ ln -s libmathops.so.1.2.3 libmathops.so.1
+```
+
+2. Create a link name.
+```bash
+$ ln -s libmathops.so.1 libmathops.so
+```
+
+3. See the files created
+
+```bash
+$ ls -l
+total 16
+lrwxrwxrwx 1 charlesdias charlesdias    15 set 17 11:09 libmathops.so -> libmathops.so.1
+lrwxrwxrwx 1 charlesdias charlesdias    19 set 17 11:09 libmathops.so.1 -> libmathops.so.1.2.3
+-rwxrwxr-x 1 charlesdias charlesdias 15272 set 17 11:02 libmathops.so.1.2.3
+```
+The link name `libmathops.so` is typically used during development for linking because it abstracts the exact version used. The major version link (like libmathops.so.1) and the actual library file with full versioning (like libmathops.so.1.2.3) are used at runtime. This structure allows applications to specify which major version of the library they require, providing both flexibility and safety across updates.
+
+#### 2.1.4 Using the shared library in another project
+
+1. Compile your program and link it against the shared library. Note that during the linking stage, the location of your shared library and include files are essential:
+
+```bash
+$ gcc main.c -o program -Iinclude -Llib -lmathops
+```
+
+2. Run the `readelf` command and notice that we have two shared libraries inside.
+
+```bash
+$ readelf -a program | grep -i Shared
+ 0x0000000000000001 (NEEDED)             Shared library: [libmathops.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+```
+
+4. Run the `program` and observe that we got a error.
+
+```bash
+$ ./program 
+./program: error while loading shared libraries: libmathops.so.1: cannot open shared object file: No such file or directory
+```
+
+That happened because the operating system needs to know where to find the shared library. One way to specify this is by setting the `LD_LIBRARY_PATH`.
+
+```bash
+$ export LD_LIBRARY_PATH=${PWD}/lib:$LD_LIBRARY_PATH
+```
+
+Alternatively, we can place your shared library in one of the standard library directories (like /usr/lib), or we can use `rpath` or `runpath` during compilation, or configure the dynamic linker's configuration.
+
+Run the `program` again.
+
+```bash
+$ ./program 
+The square of 5 is 25
+The factorial of 4 is 24
+```
 
 ## 3. Object files
 
