@@ -5,6 +5,7 @@
 - [2. Types of linking.](#2-types-of-linking)
 - [3. Object files.](#3-object-files)
 - [4. GCC commands and options.](#4-gcc-gnu-compiler-collection-commands-and-options)
+- [5. Using readelf.](#5-using-readelf)
 
 ## 1. Compilation process.
 
@@ -61,12 +62,85 @@ In static linking, the library's code is integrated into the executable itself a
 - If the library gets an update (e.g., a bug fix or a security patch), the executable won't benefit from it unless recompiled with the updated library.
 - Uses more disk space if multiple executables statically link the same library.
 
-**Usage**
-Use the static version of the library (typically has a .a extension, e.g., libfoo.a).
+#### 2.1.1 Compile a static library
+
+1. Considering the code inside the `ex03_static_library folder`. Access the subfolder `src`.
+
+2. Before creating a library, compile each source file into its corresponding object file.
 
 ```bash
-gcc program.c -L/path/to/library -lfoo -static -o program
+$ gcc -c math_ops_factorial.c math_ops_square.c 
 ```
+
+That command will create the math_ops_factorial.o math_ops_square.o object files.
+
+3. Run the file command, for example
+
+```bash
+$ file math_ops_factorial.o
+math_ops_factorial.o: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
+```
+#### 2.1.2 Create a static library
+
+1. Now, we can use the object files to create the static library.
+
+```bash
+$ ar rcs libmathops.a math_ops_square.o math_ops_factorial.o
+```
+
+After these commands, you will have a static library named `libmathops.a` which contains the functions for squaring and calculating the factorial of a number. Let's break down the `ar rcs` command:
+
+- `ar`: This is the archive utility that allows you to create, modify, and extract from archives. In the context of C/C++ development, these archives are typically used as static libraries.
+
+- `r`: Replace or insert the named files in the archive. If the archive does not exist, a new archive file is created.
+
+- `c`: Create the archive if it does not exist.
+
+- `s`: Write an object-file index into the archive, or update an existing one, even if no other change is made to the archive. An archive with an index speeds up linking to the library and allows routines in the library to call each other without regard to their placement in the archive.
+
+2. Run the file command over the library.
+
+```bash
+$ file libmathops.a 
+libmathops.a: current ar archive
+```
+
+And the ar t to see the content of the archive.
+
+```bash
+$ ar t libmathops.a 
+math_ops_square.o
+math_ops_factorial.o
+```
+
+3. After creation, move the library to the lib folder
+
+```bash
+$ mv libmathops.a ../lib
+```
+#### 2.1.3 Using the static library in another project
+
+1. Compile the source code. AS the include is not in the standard or same directory, we need to specify their path with the `-I` option during compilation.
+
+```bash
+$ gcc -c main.c -Iinclude -o main.o
+```
+
+2. Link the object file with the static library to produce an executable. 
+
+**Note:** Given that the library is named `libmathops.a`, we should use `-lmathops` without the `.a`. The linker will automatically prepend `lib` and look for `.a` (or `.so` for shared libraries) extensions.
+
+```bash
+$ gcc main.o -Llib/ -lmathops -o program
+```
+
+3. It is possible also to compile and link using just the command below.
+
+```bash
+$ gcc main.c -Llib/ -lmathops -Iinclude -o program
+```
+
+4. Run the `program`.
 
 ### 2.2 Dynamic linking
 
