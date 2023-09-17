@@ -64,7 +64,7 @@ In static linking, the library's code is integrated into the executable itself a
 
 #### 2.1.1 Compile a static library
 
-1. Considering the code inside the `ex03_static_library folder`. Access the subfolder `src`.
+1. Considering the code inside the `ex03_library` folder. Access the subfolder `src`.
 
 2. Before creating a library, compile each source file into its corresponding object file.
 
